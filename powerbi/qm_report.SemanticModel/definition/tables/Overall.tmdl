@@ -1,0 +1,49 @@
+table Overall
+	lineageTag: 3a0c4360-9c34-42f9-9bf0-7c9331ed1f46
+
+	/// Parts in the Kaggle training data
+	measure 'Parts Checked' = MAX(Overall[parts])
+		formatString: #,##0
+		lineageTag: 3bc9c955-b655-42c9-a7f9-c57f8db4f027
+
+	/// Parts with Response = 1
+	measure 'Failed Parts' = MAX(Overall[failed_parts])
+		formatString: #,##0
+		lineageTag: 02c69113-15e9-4263-bf81-0d3ec7bb9c57
+
+	/// Failed parts divided by all parts
+	measure 'Overall Failure Rate' = MAX(Overall[failure_rate])
+		formatString: 0.00%
+		lineageTag: 804a8571-53c9-42e8-903a-ba4118d9b980
+
+	column parts
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 53a1bfae-2b5d-4985-97b1-4e83eb90f178
+		summarizeBy: none
+		sourceColumn: parts
+
+	column failed_parts
+		dataType: int64
+		formatString: #,##0
+		lineageTag: ca5c2cfc-ccca-4848-8685-6829707187df
+		summarizeBy: none
+		sourceColumn: failed_parts
+
+	column failure_rate
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 8024fb26-4c28-465c-abec-8dd8c280c756
+		summarizeBy: none
+		sourceColumn: failure_rate
+
+	partition Overall = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\overall.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					Typed = Table.TransformColumnTypes(Promoted, {{"parts", Int64.Type}, {"failed_parts", Int64.Type}, {"failure_rate", type number}}, "en-US")
+				in
+					Typed
+

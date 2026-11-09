@@ -1,0 +1,100 @@
+table Stations
+	lineageTag: 9426f1d2-672e-4665-a92d-4312bb5ad8bd
+
+	/// Share of parts through the station that failed the final check
+	measure 'Failure Rate' = DIVIDE(SUM(Stations[failed_parts]), SUM(Stations[parts]))
+		formatString: 0.00%
+		lineageTag: b576a4bf-f222-4ca1-adef-1a49f79ff778
+
+	/// Failures above what the overall rate predicts for this traffic
+	measure 'Excess Failures' = SUM(Stations[excess_failures])
+		formatString: #,##0
+		lineageTag: 7d79841a-fef2-4e63-bb15-10c9ddd16f61
+
+	/// Excess failures, blank where the station is not above average
+	measure 'Excess Failures Pareto' = VAR e = [Excess Failures] RETURN IF(e > 0, e)
+		formatString: #,##0
+		lineageTag: febe2806-a816-4036-a239-8bc64d86555a
+
+	/// Running share of excess failures, largest station first
+	measure 'Cumulative Excess %' =
+			VAR cur = [Excess Failures]
+			VAR aboveAvg = FILTER(ALLSELECTED(Stations[station_id]), [Excess Failures] > 0)
+			VAR total = SUMX(aboveAvg, [Excess Failures])
+			VAR cum = SUMX(FILTER(aboveAvg, [Excess Failures] >= cur), [Excess Failures])
+			RETURN IF(cur > 0, DIVIDE(cum, total))
+		formatString: 0%
+		lineageTag: 42768f4b-4c02-44b9-b24c-c178386ccb14
+
+	/// Station failure rate divided by the overall failure rate
+	measure 'Lift vs Average' = DIVIDE([Failure Rate], MAX(Overall[failure_rate]))
+		formatString: 0.00
+		lineageTag: 82b40f3f-4fb4-462f-bc73-856a44436ca7
+
+	column line
+		dataType: string
+		lineageTag: 625f9286-c588-4636-b7bc-f38a58d88fd0
+		summarizeBy: none
+		sourceColumn: line
+
+	column station
+		dataType: string
+		lineageTag: 5cee9cdb-7a21-468c-a0a6-f31cc81f7e70
+		summarizeBy: none
+		sourceColumn: station
+
+	column station_id
+		dataType: string
+		lineageTag: f8124131-2539-44a3-9e29-58fc9be79e30
+		summarizeBy: none
+		sourceColumn: station_id
+
+	column parts
+		dataType: int64
+		formatString: #,##0
+		lineageTag: c0c45bd5-7cb4-4797-8ff7-eb17e9c5c0fc
+		summarizeBy: sum
+		sourceColumn: parts
+
+	column failed_parts
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 96fee95f-14d8-47df-a77c-1ba267174346
+		summarizeBy: sum
+		sourceColumn: failed_parts
+
+	column failure_rate
+		dataType: double
+		formatString: 0.00%
+		lineageTag: fb140daf-d786-47f1-afd8-551328c45b43
+		summarizeBy: none
+		sourceColumn: failure_rate
+
+	column lift
+		dataType: double
+		formatString: 0.00
+		lineageTag: cbed8ea6-0821-4014-b588-40fb0bc1650e
+		summarizeBy: none
+		sourceColumn: lift
+
+	column excess_failures
+		dataType: double
+		formatString: #,##0.0
+		lineageTag: a58b7470-5e94-47df-9e14-9a438edb6463
+		summarizeBy: sum
+		sourceColumn: excess_failures
+
+	partition Stations = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\station_failure_rates.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					Typed = Table.TransformColumnTypes(Promoted, {{"line", type text}, {"station", type text}, {"station_id", type text}, {"parts", Int64.Type}, {"failed_parts", Int64.Type}, {"failure_rate", type number}, {"lift", type number}, {"excess_failures", type number}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

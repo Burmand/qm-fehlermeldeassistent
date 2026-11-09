@@ -1,0 +1,8 @@
+relationship Stations_Lines
+	fromColumn: Stations.line
+	toColumn: Lines.line
+
+relationship Reports_Stations
+	fromColumn: Reports.StationID
+	toColumn: Stations.station_id
+

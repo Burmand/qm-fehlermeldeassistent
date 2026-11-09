@@ -1,0 +1,10 @@
+expression DataFolder = "D:\qm-fehlermeldeassistent\data" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 517f40f9-feca-4d1a-ab4f-27f9d3d729d0
+
+	annotation PBI_ResultType = Text
+
+expression ReportsFile = "https://<tenant>-my.sharepoint.com/personal/<user>/Documents/QM-Fehlermeldeassistent/qm_reports.xlsx" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 68a64258-bcca-4302-8ce9-08e915509fbf
+
+	annotation PBI_ResultType = Text
+

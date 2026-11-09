@@ -1,0 +1,137 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "a6e2fa6eda48ee503e83",
+  "position": {
+    "x": 24,
+    "y": 80,
+    "width": 780,
+    "height": 104,
+    "z": 3000,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "displayName": "Reports",
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reports"
+                    }
+                  },
+                  "Property": "Report Count"
+                }
+              },
+              "queryRef": "Reports.Report Count",
+              "nativeQueryRef": "Report Count"
+            },
+            {
+              "displayName": "Affected parts",
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reports"
+                    }
+                  },
+                  "Property": "Reported Parts"
+                }
+              },
+              "queryRef": "Reports.Reported Parts",
+              "nativeQueryRef": "Reported Parts"
+            },
+            {
+              "displayName": "Stations reported",
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reports"
+                    }
+                  },
+                  "Property": "Stations With Reports"
+                }
+              },
+              "queryRef": "Reports.Stations With Reports",
+              "nativeQueryRef": "Stations With Reports"
+            },
+            {
+              "displayName": "At top 3 stations",
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reports"
+                    }
+                  },
+                  "Property": "Reports At Top 3 Stations"
+                }
+              },
+              "queryRef": "Reports.Reports At Top 3 Stations",
+              "nativeQueryRef": "Reports At Top 3 Stations"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "value": [
+        {
+          "properties": {
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "id": "default"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "left": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "right": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

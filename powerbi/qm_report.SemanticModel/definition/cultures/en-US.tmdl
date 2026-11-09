@@ -1,0 +1,242 @@
+cultureInfo en-US
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "reports.report_count": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "Report Count"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Reports": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "reports.reporttime": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "ReportTime"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Time": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "reports.stationid": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "StationID"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Station": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "reports.defecttype": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "DefectType"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Defect": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "reports.quantity": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "Quantity"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Parts": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "reports.description": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "Description"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Description": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "reports.reported_parts": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "Reported Parts"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Affected parts": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "reports.stations_with_reports": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "Stations With Reports"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Stations reported": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "reports.reports_at_top_3_stations": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "Reports At Top 3 Stations"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "At top 3 stations": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "reports.excess_share": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "Excess Share"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Excess failures (history)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "reports.report_share": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Reports",
+			          "ConceptualProperty": "Report Share"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "New reports": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json
+

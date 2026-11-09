@@ -1,0 +1,255 @@
+mcs.metadata:
+  componentName: Fehler melden
+  description: Nimmt eine Fehlermeldung aus der Fertigung auf, prüft Linie und Station und speichert die Meldung nach Bestätigung.
+kind: AdaptiveDialog
+beginDialog:
+  kind: OnRecognizedIntent
+  id: main
+  intent:
+    displayName: Fehler melden
+    triggerQueries:
+      - Ich möchte einen Fehler melden
+      - Fehler melden
+      - Fehlermeldung
+      - Ich habe ein Qualitätsproblem
+      - Wir haben Kratzer an den Teilen
+      - Die Teile sind undicht
+      - Maßabweichung an der Station
+      - Defekte Teile gefunden
+      - Teile sind beschädigt
+      - Kratzer an Station 32 auf Linie 3, 5 Teile
+      - Auf Linie 1 an Station 24 sind 3 Teile undicht
+      - Station 26 hat Maßabweichungen
+
+  actions:
+    - kind: SetVariable
+      id: setVariable_text1a
+      variable: init:Topic.Ersttext
+      value: =System.Activity.Text
+
+    - kind: SetVariable
+      id: setVariable_linpre2
+      variable: init:Topic.LinieNr
+      value: =If(IsMatch(Topic.Ersttext, "(linie|line)\s*l?\s*[0-3]\b", MatchOptions.Contains & MatchOptions.IgnoreCase), Value(Match(Topic.Ersttext, "(linie|line)\s*l?\s*(?<nr>[0-3])\b", MatchOptions.IgnoreCase).nr), Blank())
+
+    - kind: SetVariable
+      id: setVariable_stpre3
+      variable: init:Topic.StationNr
+      value: =If(IsMatch(Topic.Ersttext, "station\s*s?\s*\d+", MatchOptions.Contains & MatchOptions.IgnoreCase), Value(Match(Topic.Ersttext, "station\s*s?\s*(?<nr>\d+)", MatchOptions.IgnoreCase).nr), Blank())
+
+    - kind: SetVariable
+      id: setVariable_anzpre4
+      variable: init:Topic.Anzahl
+      value: =If(IsMatch(Topic.Ersttext, "\d+\s*(teile|teil|stück|stk)", MatchOptions.Contains & MatchOptions.IgnoreCase), Value(Match(Topic.Ersttext, "(?<nr>\d+)\s*(teile|teil|stück|stk)", MatchOptions.IgnoreCase).nr), Blank())
+
+    - kind: ConditionGroup
+      id: conditionGroup_lin5b
+      conditions:
+        - id: conditionItem_lin6c
+          condition: =IsBlank(Topic.LinieNr)
+          actions:
+            - kind: Question
+              id: question_linie7k2
+              variable: Topic.LinieNr
+              prompt: Alles klar. Auf welcher Linie ist das passiert?
+              skipQuestionMode: AlwaysAsk
+              interruptionPolicy:
+                allowInterruption: false
+              entity: NumberPrebuiltEntity
+              validation: =Topic.LinieNr = 0 || Topic.LinieNr = 1 || Topic.LinieNr = 2 || Topic.LinieNr = 3
+              invalidPrompt: Diese Linie kenne ich nicht. Im Werk gibt es die Linien 0, 1, 2 und 3.
+              repeatCount: 2
+
+    - kind: SetVariable
+      id: setVariable_linie5d
+      variable: init:Topic.Linie
+      value: ="L" & Text(Topic.LinieNr)
+
+    - kind: SetVariable
+      id: setVariable_stliste4
+      variable: init:Topic.StationListe
+      value: =Switch(Topic.Linie, "L0", "S0 bis S23", "L1", "S24 und S25", "L2", "S26 bis S28", "S29 bis S51, ohne S42 und S46")
+
+    - kind: ConditionGroup
+      id: conditionGroup_stchk7
+      conditions:
+        - id: conditionItem_stchk8
+          condition: =!IsBlank(Topic.StationNr) && !Switch(Topic.Linie, "L0", Topic.StationNr >= 0 && Topic.StationNr <= 23, "L1", Topic.StationNr >= 24 && Topic.StationNr <= 25, "L2", Topic.StationNr >= 26 && Topic.StationNr <= 28, "L3", Topic.StationNr >= 29 && Topic.StationNr <= 51 && Topic.StationNr <> 42 && Topic.StationNr <> 46, false)
+          actions:
+            - kind: SendActivity
+              id: sendMessage_stbad9
+              activity: Station {Topic.StationNr} gibt es auf Linie {Topic.Linie} nicht. Dort gibt es {Topic.StationListe}.
+
+            - kind: SetVariable
+              id: setVariable_stclr1
+              variable: Topic.StationNr
+              value: =Blank()
+
+    - kind: ConditionGroup
+      id: conditionGroup_st2e
+      conditions:
+        - id: conditionItem_st3f
+          condition: =IsBlank(Topic.StationNr)
+          actions:
+            - kind: Question
+              id: question_station9q
+              variable: Topic.StationNr
+              prompt: Und an welcher Station auf Linie {Topic.Linie}?
+              skipQuestionMode: AlwaysAsk
+              interruptionPolicy:
+                allowInterruption: false
+              entity: NumberPrebuiltEntity
+              validation: =Mod(Topic.StationNr, 1) = 0 && Switch(Topic.Linie, "L0", Topic.StationNr >= 0 && Topic.StationNr <= 23, "L1", Topic.StationNr >= 24 && Topic.StationNr <= 25, "L2", Topic.StationNr >= 26 && Topic.StationNr <= 28, "L3", Topic.StationNr >= 29 && Topic.StationNr <= 51 && Topic.StationNr <> 42 && Topic.StationNr <> 46, false)
+              invalidPrompt: Diese Station gibt es auf Linie {Topic.Linie} nicht. Dort gibt es {Topic.StationListe}. Schau am besten kurz aufs Stationsschild.
+              repeatCount: 2
+
+    - kind: SetVariable
+      id: setVariable_stid3m8
+      variable: init:Topic.StationID
+      value: =Topic.Linie & "_S" & Text(Topic.StationNr)
+
+    - kind: Question
+      id: question_art5x1
+      variable: init:Topic.Fehlerart
+      prompt: Was für ein Fehler ist es? Zum Beispiel Kratzer, Maßabweichung oder Undichtigkeit.
+      skipQuestionMode: SkipOnFirstExecutionIfVariableHasValue
+      interruptionPolicy:
+        allowInterruption: false
+      entity:
+        kind: EmbeddedEntity
+        definition:
+          kind: ClosedListEntity
+          items:
+            - id: Kratzer
+              displayName: Kratzer
+              synonyms:
+                - verkratzt
+                - Riefe
+                - Kratzspuren
+            - id: Massabweichung
+              displayName: Maßabweichung
+              synonyms:
+                - Maß
+                - Maßabweichungen
+                - zu groß
+                - zu klein
+                - Toleranz
+                - außerhalb der Toleranz
+            - id: Undichtigkeit
+              displayName: Undichtigkeit
+              synonyms:
+                - undicht
+                - leckt
+                - Leck
+                - Leckage
+            - id: Sonstiges
+              displayName: Sonstiges
+              synonyms:
+                - anderes
+                - etwas anderes
+
+    - kind: ConditionGroup
+      id: conditionGroup_anzchk
+      conditions:
+        - id: conditionItem_anzchk
+          condition: =!IsBlank(Topic.Anzahl) && (Topic.Anzahl < 1 || Topic.Anzahl > 1000)
+          actions:
+            - kind: SetVariable
+              id: setVariable_anzclr
+              variable: Topic.Anzahl
+              value: =Blank()
+
+    - kind: ConditionGroup
+      id: conditionGroup_anz4g
+      conditions:
+        - id: conditionItem_anz5h
+          condition: =IsBlank(Topic.Anzahl)
+          actions:
+            - kind: Question
+              id: question_anzahl6p
+              variable: Topic.Anzahl
+              prompt: Wie viele Teile sind betroffen?
+              skipQuestionMode: AlwaysAsk
+              interruptionPolicy:
+                allowInterruption: false
+              entity: NumberPrebuiltEntity
+              validation: =Mod(Topic.Anzahl, 1) = 0 && Topic.Anzahl >= 1 && Topic.Anzahl <= 1000
+              invalidPrompt: Das kommt mir komisch vor. Bitte gib eine Anzahl zwischen 1 und 1000 an.
+              repeatCount: 2
+
+    - kind: Question
+      id: question_beschr2w
+      variable: init:Topic.Beschreibung
+      prompt: Beschreib kurz, was du gesehen hast.
+      skipQuestionMode: AlwaysAsk
+      interruptionPolicy:
+        allowInterruption: false
+      entity: StringPrebuiltEntity
+
+    - kind: SendActivity
+      id: sendMessage_summ8r
+      activity: |-
+        Danke. Ich habe das so verstanden:
+        <br />Linie {Topic.Linie}, Station S{Topic.StationNr}
+        <br />{Text(Topic.Fehlerart)}, {Topic.Anzahl} Teile
+        <br />„{Topic.Beschreibung}“
+
+    - kind: Question
+      id: question_ok4n7c
+      variable: init:Topic.Bestaetigt
+      prompt: Passt das so?
+      skipQuestionMode: AlwaysAsk
+      interruptionPolicy:
+        allowInterruption: false
+      entity: BooleanPrebuiltEntity
+
+    - kind: ConditionGroup
+      id: conditionGroup_ok2j5
+      conditions:
+        - id: conditionItem_ja8h3
+          condition: =Topic.Bestaetigt = true
+          actions:
+            - kind: InvokeFlowAction
+              id: invokeFlowAction_VsRhFg
+              input:
+                binding:
+                  text: =Topic.Linie
+                  text_1: ="S" & Text(Topic.StationNr)
+                  text_2: =Topic.StationID
+                  text_3: =Text(Topic.Fehlerart)
+                  text_4: =Text(Topic.Anzahl)
+                  text_5: =Topic.Beschreibung
+
+              output:
+                binding:
+                  reportid: Topic.ReportID
+
+              flowId: a74bdbd4-cedb-f111-84e8-70a8a559d34a
+
+            - kind: SendActivity
+              id: sendMessage_saved1z
+              activity: "Ist gespeichert, danke! Deine Meldungsnummer ist {Left(Topic.ReportID, 8)}."
+
+      elseActions:
+        - kind: SendActivity
+          id: sendMessage_again6t
+          activity: Kein Problem, dann nochmal von vorn.
+
+        - kind: SetVariable
+          id: setVariable_rst1
+          variable: Topic.LinieNr
+          value: =Blank()
+
+        - kind: SetVariable
+          id: setVariable_rst2
+          variable: Topic.StationNr
+          value: =Blank()
+
+        - kind: SetVariable
+          id: setVariable_rst3
+          variable: Topic.Anzahl
+          value: =Blank()
+
+        - kind: GotoAction
+          id: goto_restart3v
+          actionId: conditionGroup_lin5b

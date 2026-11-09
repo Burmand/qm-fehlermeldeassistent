@@ -1,0 +1,19 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["Stations","Lines","Overall","DataFolder","Reports","ReportsFile"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Stations
+ref table Lines
+ref table Overall
+ref table Reports
+
+ref cultureInfo en-US
+

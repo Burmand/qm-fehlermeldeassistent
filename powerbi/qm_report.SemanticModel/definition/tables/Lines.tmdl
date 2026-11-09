@@ -1,0 +1,52 @@
+table Lines
+	lineageTag: 26b35da4-5b85-4f79-a2d4-30e2580fb4a9
+
+	/// Share of parts through the line that failed
+	measure 'Line Failure Rate' = DIVIDE(SUM(Lines[failed_parts]), SUM(Lines[parts]))
+		formatString: 0.00%
+		lineageTag: 4015c536-1475-4787-b42d-0cdd363f53cb
+
+	column line
+		dataType: string
+		lineageTag: 9446a97c-b7ae-4f0b-8405-eaf1c255ab12
+		summarizeBy: none
+		sourceColumn: line
+
+	column parts
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 177ca7e5-d7d2-41e4-9a4b-59d278e7224b
+		summarizeBy: sum
+		sourceColumn: parts
+
+	column failed_parts
+		dataType: int64
+		formatString: #,##0
+		lineageTag: b6237280-ae06-43f5-831c-b35df43e2c2c
+		summarizeBy: sum
+		sourceColumn: failed_parts
+
+	column stations
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 9dfe740f-75a0-46b8-8420-2d99319e269f
+		summarizeBy: sum
+		sourceColumn: stations
+
+	column failure_rate
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 65d1d09a-83c8-41b0-9a0e-9b8f29e3fbaa
+		summarizeBy: none
+		sourceColumn: failure_rate
+
+	partition Lines = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\line_failure_rates.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					Typed = Table.TransformColumnTypes(Promoted, {{"line", type text}, {"parts", Int64.Type}, {"failed_parts", Int64.Type}, {"stations", Int64.Type}, {"failure_rate", type number}}, "en-US")
+				in
+					Typed
+

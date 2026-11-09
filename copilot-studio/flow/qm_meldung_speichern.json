@@ -1,0 +1,171 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_excelonlinebusiness": {
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedexcelonlinebusiness_a4386"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Skills",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "description": "Line",
+                  "title": "Line",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_1": {
+                  "description": "Station",
+                  "title": "Station",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_2": {
+                  "description": "StationID",
+                  "title": "StationID",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_3": {
+                  "description": "DefectType",
+                  "title": "DefectType",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_4": {
+                  "description": "Quantity",
+                  "title": "Quantity",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_5": {
+                  "description": "Description",
+                  "title": "Description",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "required": [
+                "text",
+                "text_1",
+                "text_2",
+                "text_3",
+                "text_4",
+                "text_5"
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "b8f61c18-7224-4f8a-9c5f-72fbce5df764"
+          }
+        }
+      },
+      "actions": {
+        "Respond_to_the_agent": {
+          "type": "Response",
+          "kind": "Skills",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reportid": {
+                  "title": "ReportID",
+                  "description": "",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "additionalProperties": {}
+            },
+            "statusCode": 200,
+            "body": {
+              "reportid": "@{outputs(\u0027ReportID\u0027)}"
+            }
+          },
+          "runAfter": {
+            "Add_a_row_into_a_table": [
+              "SUCCEEDED"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "81c94f73-dd52-465c-ad3b-a4686da63cc3"
+          }
+        },
+        "ReportID": {
+          "type": "Compose",
+          "inputs": "@guid()",
+          "runAfter": {}
+        },
+        "Add_a_row_into_a_table": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "source": "me",
+              "drive": "<your-onedrive-drive-id>",
+              "file": "<your-excel-file-id>",
+              "table": "{00000000-000C-0000-FFFF-FFFF00000000}",
+              "item/ReportID": "@outputs(\u0027ReportID\u0027)",
+              "item/Timestamp": "@utcNow()",
+              "item/Line": "@triggerBody()?[\u0027text\u0027]",
+              "item/Station": "@triggerBody()?[\u0027text_1\u0027]",
+              "item/StationID": "@triggerBody()?[\u0027text_2\u0027]",
+              "item/DefectType": "@triggerBody()?[\u0027text_3\u0027]",
+              "item/Quantity": "@triggerBody()?[\u0027text_4\u0027]",
+              "item/Description": "@triggerBody()?[\u0027text_5\u0027]"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
+              "operationId": "AddRowV2",
+              "connectionName": "shared_excelonlinebusiness"
+            }
+          },
+          "runAfter": {
+            "ReportID": [
+              "SUCCEEDED"
+            ]
+          },
+          "metadata": {
+            "<your-excel-file-id>": "/QM-Fehlermeldeassistent/qm_reports.xlsx"
+          }
+        }
+      },
+      "outputs": {},
+      "description": "When an agent calls the flow and send back a response.",
+      "metadata": {
+        "defaultToEmbeddedConnections": true
+      }
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}

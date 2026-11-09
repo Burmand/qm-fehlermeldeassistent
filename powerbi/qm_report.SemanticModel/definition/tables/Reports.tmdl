@@ -1,0 +1,103 @@
+table Reports
+	lineageTag: 604c9499-1fbb-4038-844e-8b219d783c35
+
+	/// Number of defect reports
+	measure 'Report Count' = COUNTROWS(Reports)
+		formatString: #,##0
+		lineageTag: dfbc575d-92eb-4f20-8ad3-af8693f2047d
+
+	/// Sum of affected parts over all reports
+	measure 'Reported Parts' = SUM(Reports[Quantity])
+		formatString: #,##0
+		lineageTag: 87437260-444e-42df-a53f-8281fb7c1faf
+
+	/// Distinct stations that got at least one report
+	measure 'Stations With Reports' = DISTINCTCOUNT(Reports[StationID])
+		formatString: #,##0
+		lineageTag: a864d007-aab8-4d7f-af01-07b17d29307b
+
+	/// Share of all selected reports that name this station
+	measure 'Report Share' = DIVIDE([Report Count], CALCULATE([Report Count], ALLSELECTED(Stations[station_id])))
+		formatString: 0%
+		lineageTag: 7fadcaf7-50dc-41de-bce0-2c314405999b
+
+	/// Share of all excess failures that come from this station
+	measure 'Excess Share' =
+			VAR here = [Excess Failures Pareto]
+			VAR total = SUMX(ALLSELECTED(Stations[station_id]), [Excess Failures Pareto])
+			RETURN DIVIDE(here, total)
+		formatString: 0%
+		lineageTag: bb9285ff-cda0-4441-9f6f-0186d17a4202
+
+	/// Share of reports at the three stations with the most excess failures
+	measure 'Reports At Top 3 Stations' =
+			VAR top3 = TOPN(3, ALL(Stations[station_id]), [Excess Failures], DESC)
+			RETURN DIVIDE(CALCULATE([Report Count], top3), CALCULATE([Report Count], ALL(Stations)))
+		formatString: 0%
+		lineageTag: 508a1560-aab4-4c3a-a765-c63235d4383e
+
+	column ReportID
+		dataType: string
+		lineageTag: a9697afe-b134-429d-823c-1455f3c1ebff
+		summarizeBy: none
+		sourceColumn: ReportID
+
+	column ReportTime
+		dataType: dateTime
+		formatString: dd.mm.yyyy hh:nn
+		lineageTag: b5c18ba9-57bc-4883-a631-8821111ede40
+		summarizeBy: none
+		sourceColumn: ReportTime
+
+	column Line
+		dataType: string
+		lineageTag: 5e6de061-7eae-43ae-af85-bb199a11713f
+		summarizeBy: none
+		sourceColumn: Line
+
+	column Station
+		dataType: string
+		lineageTag: 93378abe-74d2-473c-a85f-e7cd8477621a
+		summarizeBy: none
+		sourceColumn: Station
+
+	column StationID
+		dataType: string
+		lineageTag: 1a99d997-6d14-4c5d-b5dc-fc9c9f0f3a79
+		summarizeBy: none
+		sourceColumn: StationID
+
+	column DefectType
+		dataType: string
+		lineageTag: 82a9afc7-f2d4-457e-85a6-4b69f09318f7
+		summarizeBy: none
+		sourceColumn: DefectType
+
+	column Quantity
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 40d7c477-5ee7-4f84-8019-901d153dd504
+		summarizeBy: none
+		sourceColumn: Quantity
+
+	column Description
+		dataType: string
+		lineageTag: 15d5db75-76cc-413d-b130-8298d77f339c
+		summarizeBy: none
+		sourceColumn: Description
+
+	partition Reports = m
+		mode: import
+		source =
+				let
+					Source = Excel.Workbook(if Text.StartsWith(ReportsFile, "http") then Web.Contents(ReportsFile) else File.Contents(ReportsFile), null, true),
+					Data = Source{[Item="Reports", Kind="Table"]}[Data],
+					NonEmpty = Table.SelectRows(Data, each [ReportID] <> null and [ReportID] <> ""),
+					WithTime = Table.AddColumn(NonEmpty, "ReportTime", each DateTimeZone.RemoveZone(DateTimeZone.ToLocal(DateTimeZone.FromText(Text.From([Timestamp])))), type datetime),
+					Typed = Table.TransformColumnTypes(WithTime, {{"ReportID", type text}, {"Line", type text}, {"Station", type text}, {"StationID", type text}, {"DefectType", type text}, {"Quantity", Int64.Type}, {"Description", type text}}, "en-US"),
+					Result = Table.RemoveColumns(Typed, {"Timestamp"})
+				in
+					Result
+
+	annotation PBI_ResultType = Table
+

@@ -69,3 +69,16 @@ Trigger "When an agent calls the flow" with six text inputs (Line, Station, Stat
 3. Respond to the agent with `ReportID`
 
 The definition is in `copilot-studio/flow/qm_meldung_speichern.json`.
+
+## Topic "Fehlercode erklären"
+
+The second topic answers questions about defect codes from the example catalogue in knowledge/Fehlerkatalog.pdf.
+
+1. The code is read from the question with the pattern `\b(?<b>[kmus])\s*-?\s*(?<n>\d{3})\b` and written as letter, hyphen, number (k102 becomes K-102). If there is no code, the agent asks for it.
+2. A station in the question is read with the same pattern as in the report topic. A station that does not exist (above 51, or 42 or 46) gets a short hint.
+3. A code that is not among the 11 catalogue codes is rejected with a fixed message. No search and no model call happen in this case.
+4. For a known code the topic calls generative answers (SearchAndSummarizeContent) on the knowledge source. The search text contains the code, the station if there is one, and the original question. Additional instructions tell the model to answer only from the catalogue, to name stations, causes, first measure and escalation, to point out a station that is not listed for the code and to say when the catalogue has no answer.
+
+The system topic "Mehrere passende Themen" has one extra rule. If a message contains a code and "Fehlercode erklären" is one of the matching topics, that topic is chosen without asking the worker. Without this rule, short questions like "Was bedeutet Fehlercode U-303?" matched both topics.
+
+The agent instructions repeat the rules for catalogue answers, and the fallback topic (Konversationsboosting) uses the same additional instructions for general questions.

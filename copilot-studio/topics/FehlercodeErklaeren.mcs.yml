@@ -1,0 +1,128 @@
+mcs.metadata:
+  componentName: Fehlercode erklären
+  description: Erklärt einen Fehlercode aus dem Fehlerkatalog mit Ursachen, erster Maßnahme und Eskalation.
+kind: AdaptiveDialog
+beginDialog:
+  kind: OnRecognizedIntent
+  id: main
+  intent:
+    displayName: Fehlercode erklären
+    triggerQueries:
+      - Was bedeutet Fehlercode M-204?
+      - Was bedeutet der Code K-101
+      - Was ist Fehler U-301?
+      - Erklär mir Fehlercode K-103
+      - Was muss ich bei M-201 tun?
+      - Was ist bei Code M-206 zu tun
+      - Fehlercode nachschlagen
+      - Was bedeutet Fehlercode K-104 an Station 30?
+      - Ich habe einen Fehlercode und weiß nicht, was er bedeutet
+      - Was steht im Fehlerkatalog zu M-205
+      - Was bedeutet Fehlercode U-301?
+      - Was bedeutet Code K-103?
+      - Bedeutung von Fehlercode M-202
+      - Fehlercode M-206 was heißt das
+      - Was sagt der Fehlerkatalog zu K-104
+      - Code M-203 nachschlagen
+      - Was ist die erste Maßnahme bei M-204
+      - Wann muss ich bei K-102 eskalieren
+      - Welche Ursachen hat M-201
+      - Was bedeutet der Code auf dem Prüfprotokoll
+
+  actions:
+    - kind: SetVariable
+      id: setVariable_fctext1
+      variable: init:Topic.Frage
+      value: =System.Activity.Text
+
+    - kind: SetVariable
+      id: setVariable_fccode2
+      variable: init:Topic.Code
+      value: =If(IsMatch(Topic.Frage, "\b[kmus]\s*-?\s*\d{3}\b", MatchOptions.Contains & MatchOptions.IgnoreCase), Upper(Match(Topic.Frage, "\b(?<b>[kmus])\s*-?\s*(?<n>\d{3})\b", MatchOptions.IgnoreCase).b) & "-" & Match(Topic.Frage, "\b(?<b>[kmus])\s*-?\s*(?<n>\d{3})\b", MatchOptions.IgnoreCase).n, "")
+
+    - kind: ConditionGroup
+      id: conditionGroup_fcask3
+      conditions:
+        - id: conditionItem_fcask4
+          condition: =IsBlank(Topic.Code)
+          actions:
+            - kind: Question
+              id: question_fccode5
+              variable: init:Topic.CodeEingabe
+              prompt: Welchen Fehlercode meinst du? Er hat einen Buchstaben und drei Ziffern, zum Beispiel M-204.
+              skipQuestionMode: AlwaysAsk
+              interruptionPolicy:
+                allowInterruption: false
+              entity: StringPrebuiltEntity
+
+            - kind: SetVariable
+              id: setVariable_fccode6
+              variable: Topic.Code
+              value: =If(IsMatch(Topic.CodeEingabe, "\b[kmus]\s*-?\s*\d{3}\b", MatchOptions.Contains & MatchOptions.IgnoreCase), Upper(Match(Topic.CodeEingabe, "\b(?<b>[kmus])\s*-?\s*(?<n>\d{3})\b", MatchOptions.IgnoreCase).b) & "-" & Match(Topic.CodeEingabe, "\b(?<b>[kmus])\s*-?\s*(?<n>\d{3})\b", MatchOptions.IgnoreCase).n, "")
+
+    - kind: ConditionGroup
+      id: conditionGroup_fcnone7
+      conditions:
+        - id: conditionItem_fcnone8
+          condition: =IsBlank(Topic.Code)
+          actions:
+            - kind: SendActivity
+              id: sendMessage_fcnone9
+              activity: Das sieht nicht nach einem Fehlercode aus. Die Codes im Katalog haben die Form K-101, M-204 oder U-301.
+
+            - kind: EndDialog
+              id: endDialog_fcnone10
+
+    - kind: SetVariable
+      id: setVariable_fcst11
+      variable: init:Topic.StationNr
+      value: =If(IsMatch(Topic.Frage, "station\s*s?\s*\d+", MatchOptions.Contains & MatchOptions.IgnoreCase), Value(Match(Topic.Frage, "station\s*s?\s*(?<nr>\d+)", MatchOptions.IgnoreCase).nr), Blank())
+
+    - kind: ConditionGroup
+      id: conditionGroup_fcst12
+      conditions:
+        - id: conditionItem_fcst13
+          condition: =!IsBlank(Topic.StationNr) && (Topic.StationNr > 51 || Topic.StationNr = 42 || Topic.StationNr = 46)
+          actions:
+            - kind: SendActivity
+              id: sendMessage_fcst14
+              activity: Kurzer Hinweis, Station {Topic.StationNr} gibt es im Werk nicht. Bitte prüf die Nummer am Stationsschild.
+
+            - kind: SetVariable
+              id: setVariable_fcst15
+              variable: Topic.StationNr
+              value: =Blank()
+
+    - kind: ConditionGroup
+      id: conditionGroup_fcknown16
+      conditions:
+        - id: conditionItem_fcknown17
+          condition: =!(Topic.Code in ["K-101", "K-102", "K-103", "K-104", "M-201", "M-202", "M-203", "M-204", "M-205", "M-206", "U-301"])
+          actions:
+            - kind: SendActivity
+              id: sendMessage_fcunk18
+              activity: Den Code {Topic.Code} gibt es im Fehlerkatalog nicht. Bitte prüf den Code noch einmal. Wenn er stimmt, gib den Fehler bitte direkt an die Qualitätssicherung.
+
+            - kind: EndDialog
+              id: endDialog_fcunk19
+
+    - kind: SetVariable
+      id: setVariable_fcq20
+      variable: init:Topic.Suchtext
+      value: '="Fehlercode " & Topic.Code & If(IsBlank(Topic.StationNr), "", ", gemeldet an Station S" & Text(Topic.StationNr)) & ". Frage: " & Topic.Frage'
+
+    - kind: SearchAndSummarizeContent
+      id: searchContent_fc21
+      variable: Topic.Antwort
+      userInput: =Topic.Suchtext
+      additionalInstructions: Beantworte die Frage nur mit Informationen aus dem Fehlerkatalog. Nenne zum Code die Bezeichnung, die betroffenen Stationen, typische Ursachen, die erste Maßnahme und den Hinweis zur Eskalation. Wenn eine Station genannt wird, die beim Code nicht aufgeführt ist, sag das deutlich. Erfinde keine Codes, Ursachen oder Maßnahmen. Wenn der Katalog die Frage nicht beantwortet, sag das. Antworte auf Deutsch, kurz und per du.
+
+    - kind: ConditionGroup
+      id: conditionGroup_fcans22
+      conditions:
+        - id: conditionItem_fcans23
+          condition: =IsBlank(Topic.Antwort)
+          actions:
+            - kind: SendActivity
+              id: sendMessage_fcans24
+              activity: Zu {Topic.Code} finde ich im Fehlerkatalog gerade keine Angaben. Bitte frag bei der Qualitätssicherung nach.

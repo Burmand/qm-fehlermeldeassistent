@@ -1,11 +1,11 @@
 # QM-Fehlermeldeassistent
 
-A chat assistant for defect reports on the shop floor, built with the Microsoft Power Platform. A worker describes a defect in their own words in German. The agent asks for the details it still needs, checks that the line and station really exist, and saves the confirmed report to an Excel table on OneDrive. A Power BI report then compares these reports with historical failure rates from Bosch production data.
+A chat assistant for defect reports on the shop floor, built with the Microsoft Power Platform. A worker describes a defect in their own words in German. The agent asks for the details it still needs, checks that the line and station really exist, and saves the confirmed report to an Excel table on OneDrive. It can also explain defect codes from a defect catalogue. A Power BI report then compares these reports with historical failure rates from Bosch production data.
 
 ## How it works
 
 1. **Data preparation in Python.** The script prepare_data.py reads the Bosch Production Line Performance data from Kaggle (about 1.2 million parts) and works out how often parts fail at each line and station. The column names in the data tell which station measured a part, so every part can be traced through the plant.
-2. **Copilot Studio agent.** One topic collects line, station, type of defect, number of parts and a short description. Before saving, the agent shows a summary and asks the worker to confirm it.
+2. **Copilot Studio agent.** One topic collects line, station, type of defect, number of parts and a short description. Before saving, the agent shows a summary and asks the worker to confirm it. A second topic explains defect codes from the catalogue.
 3. **Power Automate flow.** The agent calls a flow that adds the report with an ID and a timestamp as a new row to an Excel table on OneDrive. The ID goes back to the worker as a reference number.
 4. **Power Apps solution.** Agent, flow and the Excel connection are packaged in one Power Platform solution, which can be imported into another environment.
 5. **Power BI report.** The first page shows the historical failure rates, the second page puts the new reports next to them.
@@ -43,14 +43,25 @@ The Bosch data has 50 stations, and every station belongs to exactly one line. T
 - The type of defect comes from a fixed list with synonyms, so "undicht" counts as Undichtigkeit and "zu groß" counts as Maßabweichung.
 - Nothing is saved before the worker confirms the summary. If they answer no, the agent starts over.
 
+## RAG for codes from a PDF
+
+Workers can ask the agent what a defect code means and the agent answers from a catalogue in PDF form that is added to Copilot Studio as a knowledge source.
+
+![Answer from the defect catalogue](screenshots/agent_chat_knowledge_code.png)
+
+Codes that are not in the catalogue are rejected before the model is asked, so it cannot invent an answer.
+
+![Unknown code is rejected](screenshots/agent_chat_unknown_code.png)
+
 ## Repository
 
 | Folder | Content |
 |---|---|
 | prepare_data.py | data preparation |
 | data | aggregated results, no raw Kaggle data |
-| copilot-studio | the topics and the flow definition |
+| copilot-studio | the topics, the agent instructions and the flow definition |
+| knowledge | example defect catalogue used as knowledge source |
 | solution | Power Platform solution export |
 | powerbi | Power BI project, open qm_report.pbip in Power BI Desktop |
 | excel | empty template for the report table |
-| docs | design notes for the agent and the flow |
+| docs | design notes and the test protocol for the knowledge source |
